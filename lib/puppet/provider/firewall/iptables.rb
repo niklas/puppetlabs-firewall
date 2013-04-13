@@ -252,6 +252,14 @@ Puppet::Type.type(:firewall).provide :iptables, :parent => Puppet::Provider::Fir
     end
 
     hash
+  rescue ArgumentError => e
+    # FIXME: negative rules are not parsed correctly.
+    # https://github.com/puppetlabs/puppetlabs-firewall/issues/141
+    if e.message =~ /Invalid address from IPAddr.new: !/
+      return nil # ignore and hope for the best
+    else
+      raise e
+    end
   end
 
   def insert_args
