@@ -36,6 +36,9 @@ class Puppet::Provider::Firewall::Firewall
   # Number range 9000-9999 is reserved for unmanaged rules
   $unmanaged_rule_regex = %r{^9[0-9]{3}\s.*$}
 
+  # These chains will be ignored.
+  $excluded_chains_regex = %r{^KUBE|^FLANNEL}
+
   # Attribute resource map
   # Map is ordered as the attributes appear in the iptables-save/ip6tables-save output
   $resource_map = {
@@ -485,6 +488,7 @@ class Puppet::Provider::Firewall::Firewall
                       else
                         Puppet::Provider::Firewall::Firewall.rule_to_hash(context, rule[0], table_name, protocol)
                       end
+          next if raw_rules[:chain].match?($excluded_chains_regex)
           # Process the returned values so that it is correct for our purposes
           rules << Puppet::Provider::Firewall::Firewall.process_get(context, raw_rules, rule[0], counter)
           counter += 1
